@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dracarys Year 2026</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        magma: '#cf1020',
+        coal: '#050505',
+        gold: '#d4af37',
+        ember: '#ff4500'
+      },
+      fontFamily: {
+        got: ['Cinzel Decorative', 'serif'],
+        serif: ['Cinzel', 'serif'],
+        body: ['Lato', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { background: #050505; color: #f3f3f3; margin: 0; overflow-x: hidden; font-family: 'Lato', sans-serif; }
+canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+section {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+
+main {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+main > section { scroll-snap-align: start; }
+
+.fire-text {
+  background: -webkit-linear-gradient(#ffcc00, #ff3300);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 5px #ff0000);
+  animation: flicker 2s infinite alternate;
+}
+
+@keyframes flicker {
+  0% { filter: drop-shadow(0 0 5px #ff0000); opacity: 1; }
+  50% { filter: drop-shadow(0 0 15px #ff4500); opacity: 0.9; }
+  100% { filter: drop-shadow(0 0 5px #ff0000); opacity: 1; }
+}
+
+.volcano-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: linear-gradient(to bottom, #ffd700 0%, #ff4500 50%, #cf1020 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,1)) drop-shadow(0 0 15px #ff4500);
+}
+
+.ember-base {
+    position: absolute;
+    top: 40%; left: 50%; transform: translate(-50%, -50%);
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(255,69,0,0.6) 0%, rgba(207,16,32,0.2) 60%, transparent 80%);
+    filter: blur(15px); z-index: 0; opacity: 0.7;
+    animation: pulse-lava 4s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-lava {
+    0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+    100% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* LE PARCHEMIN AMÉLIORÉ */
+.royal-parchment {
+  background: linear-gradient(45deg, #1a120b 0%, #2c1e12 100%);
+  border: 2px solid #d4af37;
+  padding: 3rem;
+  box-shadow: inset 0 0 50px #000, 0 0 30px rgba(212, 175, 55, 0.3);
+  position: relative;
+  max-width: 700px;
+  width: 90%;
+  transform: scale(0.8);
+  opacity: 0;
+  display: none;
+}
+
+.royal-parchment::before, .royal-parchment::after {
+  content: "";
+  position: absolute;
+  width: 20px; height: 100%;
+  background: #d4af37;
+  top: 0;
+}
+.royal-parchment::before { left: -10px; border-radius: 5px 0 0 5px; }
+.royal-parchment::after { right: -10px; border-radius: 0 5px 5px 0; }
+
+.medieval-input {
+  background: transparent; border: none; border-bottom: 3px solid #cf1020;
+  color: #d4af37; text-align: center; font-size: 1.8rem; outline: none;
+  font-family: 'Cinzel Decorative', serif; padding-bottom: 0.5rem; width: 100%;
+}
+
+.btn-fire {
+  position: relative; overflow: hidden; transition: all 0.3s;
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.5); background: rgba(0,0,0,0.7);
+}
+.btn-fire:hover { background: #cf1020; color: white; transform: scale(1.05); }
+
+</style>
+</head>
+
+<body>
+
+<canvas id="fireCanvas"></canvas>
+<div id="flash-overlay" class="fixed inset-0 pointer-events-none z-50 bg-ember opacity-0 transition-opacity duration-500"></div>
+
+<section id="gate-section" class="bg-coal">
+  <h1 class="text-6xl md:text-9xl font-got fire-text mb-8 tracking-widest text-center uppercase">VALYRIA</h1>
+  <div class="bg-black/80 backdrop-blur-md p-10 rounded-lg border border-gray-800 text-center relative max-w-lg w-full mx-4 shadow-2xl">
+    <p class="italic text-gray-400 mb-8 font-serif text-xl">"Valar Morghulis"</p>
+    <input id="secret-code" class="medieval-input uppercase tracking-widest" placeholder="Réponds..." autocomplete="off">
+    <div class="mt-12">
+      <button id="enter-btn" class="btn-fire px-10 py-4 border-2 border-ember text-ember font-got font-bold tracking-widest uppercase text-xl w-full">Invoquer le Feu</button>
+    </div>
+    <p id="error-msg" class="mt-6 text-magma font-got opacity-0 tracking-widest text-lg">Le Trône te refuse.</p>
+  </div>
+</section>
+
+<main id="main-content" class="hidden opacity-0">
+
+  <section class="bg-coal relative" id="oracle-section">
+    <div id="oracle-header" class="absolute top-12 text-center w-full px-4 z-20">
+      <h2 class="text-4xl md:text-6xl font-got text-gold mb-2 drop-shadow-md">Ton Destin</h2>
+      <p class="italic text-gray-400 font-serif text-lg">Un seul choix. Une seule flamme.</p>
+    </div>
+
+    <div id="chest-grid" class="grid grid-cols-2 md:grid-cols-3 gap-8 w-full max-w-6xl px-6 items-start justify-center mt-20">
+      
+      <div id="chest-1" onclick="handleChest(1)" class="chest-container cursor-pointer text-center relative group">
+        <div class="ember-base"></div>
+        <img src="BackgroundEraser_20251224_205631738.png" class="chest-img w-20 h-20 md:w-24 md:h-24 mx-auto object-contain relative z-10">
+        <h3 class="mt-8 text-2xl md:text-3xl volcano-title">Le Sang</h3>
+      </div>
+      
+      <div id="chest-2" onclick="handleChest(2)" class="chest-container cursor-pointer text-center relative group">
+        <div class="ember-base" style="animation-delay: 1s;"></div> 
+        <img src="BackgroundEraser_20251224_205631738.png" class="chest-img w-20 h-20 md:w-24 md:h-24 mx-auto object-contain relative z-10">
+        <h3 class="mt-8 text-2xl md:text-3xl volcano-title">Le Dragon</h3>
+      </div>
+      
+      <div id="chest-3" onclick="handleChest(3)" class="chest-container cursor-pointer text-center relative group">
+        <div class="ember-base" style="animation-delay: 2s;"></div>
+        <img src="BackgroundEraser_20251224_205631738.png" class="chest-img w-20 h-20 md:w-24 md:h-24 mx-auto object-contain relative z-10">
+        <h3 class="mt-8 text-2xl md:text-3xl volcano-title">Le Trône</h3>
+      </div>
+    </div>
+
+    <div id="grand-parchemin" class="royal-parchment text-center z-30">
+        <h2 id="oracle-title" class="text-gold font-got text-3xl mb-6 tracking-widest uppercase border-b border-gold/30 pb-4">Prophétie Royale</h2>
+        <p id="oracle-text" class="font-serif text-xl md:text-2xl leading-relaxed text-gray-200 italic mb-10"></p>
+        
+        <button id="btn-goto-drogon" class="btn-fire px-8 py-3 border border-gold text-gold font-got uppercase tracking-widest text-sm">
+            Voir Drogon <i class="fa fa-chevron-right ml-2"></i>
+        </button>
+    </div>
+  </section>
+
+  <section id="section-drogon" class="bg-black relative">
+    <div id="drogon-container" class="royal-parchment text-center block opacity-100 scale-100 display-block" style="display:block; opacity:0; transform: translateY(20px)">
+        <h2 class="text-3xl font-got text-gold mb-6 border-b border-gray-700 pb-4 uppercase">La Voix des Ombres</h2>
+        <div id="drogon-text" class="font-serif text-xl md:text-2xl leading-relaxed text-gray-200 italic"></div>
+        <button id="btn-goto-final" class="mt-8 btn-fire px-10 py-4 border border-magma text-magma font-got uppercase tracking-widest">
+            Revendiquer 2026
+        </button>
+    </div>
+  </section>
+
+  <section id="section-sign" class="bg-black text-center relative overflow-hidden">
+    <div class="z-10 relative px-4 flex flex-col items-center">
+      <p class="text-gold font-got text-xl mb-4 tracking-[0.5em] uppercase animate-pulse">Khaleesi</p>
+      <h2 class="text-5xl md:text-8xl font-got text-white mb-6 leading-tight fire-text">BRISE <br>LES CHAÎNES</h2>
+      <p class="italic text-gray-400 mb-12 font-serif text-lg text-center">L'année passée n'était que cendres.<br>La nouvelle sera Feu et Sang.</p>
+      <div class="border-y-2 border-gold py-6 px-10 bg-gold/5 backdrop-blur-sm">
+        <p class="text-4xl md:text-6xl font-got text-gold tracking-widest shadow-black drop-shadow-lg text-center">LE PARRAIN</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+<script>
+gsap.registerPlugin(TextPlugin);
+
+const enterBtn = document.getElementById("enter-btn");
+const secret = document.getElementById("secret-code");
+const gate = document.getElementById("gate-section");
+const main = document.getElementById("main-content");
+const error = document.getElementById("error-msg");
+const flash = document.getElementById("flash-overlay");
+const btnDrogon = document.getElementById("btn-goto-drogon");
+const btnFinal = document.getElementById("btn-goto-final");
+
+const messages = {
+    1: "Le sang est la seule monnaie qui ait de la valeur. Il coule dans tes veines comme un brasier. En 2026, ne crains pas les épreuves : le sang versé ne te brise pas, il forge ta légende. Sois le feu qui purifie. Dracarys.",
+    2: "Un dragon n'est pas un esclave. Tu n'es pas née pour suivre le troupeau, mais pour voler au-dessus des tempêtes. Que les vents de 2026 portent l'ombre de tes ailes. Les cieux sont ton domaine. Ton ascension commence maintenant.",
+    3: "Le pouvoir ne se demande pas, il se prend. 2026 sera ton royaume et ton Trône sera de fer et de feu, forgé par chaque défi terrassé. Revendique ta couronne, impose ta volonté. Le Trône t'attend."
+};
+
+enterBtn.onclick = () => {
+  const val = secret.value.trim().toLowerCase();
+  if(val.includes("dohaeris") || val === "dohaeris") {
+    flash.style.opacity = "0.8";
+    setTimeout(() => { flash.style.opacity = "0"; }, 300);
+    burstFire();
+    gsap.to(gate, { opacity: 0, scale: 1.05, duration: 1.2, ease: "power2.in", onComplete: () => {
+      gate.style.display = "none"; 
+      main.classList.remove("hidden");
+      gsap.to(main, { opacity: 1, duration: 1.5 });
+    }});
+  } else {
+    gsap.fromTo(gate, { x: -10 }, { x: 10, repeat: 5, yoyo: true, duration: 0.05 });
+    gsap.to(error, { opacity: 1, duration: 0.5 });
+  }
+};
+
+let choiceMade = false;
+function handleChest(id) {
+  if (choiceMade) return;
+  choiceMade = true;
+
+  // 1. DISPARITION DES ÉLÉMENTS
+  gsap.to(["#chest-grid", "#oracle-header"], { 
+    opacity: 0, 
+    y: -50, 
+    duration: 0.8, 
+    stagger: 0.2,
+    onComplete: () => {
+        document.getElementById("chest-grid").style.display = "none";
+        document.getElementById("oracle-header").style.display = "none";
+        
+        // 2. APPARITION DU GRAND PARCHEMIN
+        const parch = document.getElementById("grand-parchemin");
+        parch.style.display = "block";
+        gsap.to(parch, { opacity: 1, scale: 1, duration: 1, ease: "back.out(1.7)" });
+        
+        // 3. ÉCRITURE DU TEXTE
+        gsap.to("#oracle-text", {
+            text: messages[id],
+            duration: 3,
+            ease: "none"
+        });
+    }
+  });
+}
+
+btnDrogon.onclick = () => {
+  document.getElementById("section-drogon").scrollIntoView({ behavior: 'smooth' });
+  gsap.to("#drogon-container", { opacity: 1, y: 0, duration: 1, delay: 0.5 });
+  gsap.to("#drogon-text", {
+    text: "Mère des Lapins, Briseuse de Chaînes...<br><br>" +
+    "Depuis les Terres de l'Ombre, j'ai vu tes larmes devenir un brasier. " +
+    "Je ne suis plus ce petit être que tu protégeais, mais je suis toujours ton Drogon. " +
+    "En 2026, ne baisse jamais la tête. Un dragon ne mendie pas sa place, il la prend." +
+    "Brise tes chaînes, ma Khaleesi. Je serai l'étincelle dans ton regard. " +
+    "Prends ce qui t'appartient par le feu, le sang, et l'amour éternel.",
+    duration: 30, delay: 1, ease: "none"
+  });
+};
+
+btnFinal.onclick = () => {
+  document.getElementById("section-sign").scrollIntoView({ behavior: 'smooth' });
+  burstFire();
+};
+
+// --- FIRE PARTICLES ---
+const canvas = document.getElementById("fireCanvas");
+const ctx = canvas.getContext("2d");
+let w, h;
+function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize);
+resize();
+
+let particles = [];
+for(let i=0; i<180; i++) particles.push({
+  x: Math.random()*w, y: Math.random()*h, s: Math.random()*2+1, v: Math.random()*2+0.5, h: Math.random()*2-1
+});
+
+function anim() {
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = "#ff4500";
+  particles.forEach(p => {
+    p.y -= p.v; p.x += p.h + Math.sin(p.y/50)*0.5;
+    if(p.y < -10) { p.y = h + 10; p.x = Math.random()*w; }
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
+  });
+  requestAnimationFrame(anim);
+}
+anim();
+
+function burstFire() {
+  particles.forEach(p => { p.v = Math.random() * 15 + 5; });
+  setTimeout(() => { particles.forEach(p => p.v = Math.random()*2+0.5); }, 1000);
+}
+</script>
+
+</body>
+</html>
+ Math.random()*2+0.5, h: Math.random()*2-1
+});
+
+function anim() {
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = "#ff4500";
+  particles.forEach(p => {
+    p.y -= p.v; p.x += p.h + Math.sin(p.y/50)*0.5;
+    if(p.y < -10) { p.y = h + 10; p.x = Math.random()*w; }
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
+  });
+  requestAnimationFrame(anim);
+}
+anim();
+
+function burstFire() {
+  particles.forEach(p => { p.v = Math.random() * 15 + 5; });
+  setTimeout(() => { particles.forEach(p => p.v = Math.random()*2+0.5); }, 1000);
+}
+</script>
+
+</body>
+</html>
+Id('gate-section').style.display = 'none';
+            }})
+            .set("#main-content", { display: "block" })
+            .to("#main-content", { opacity: 1, duration: 1 });
+        }
+
+        // 3. COFFRES
+        let isChestOpened = false;
+        function handleChestOpening(id) {
+            if (isChestOpened) return;
+            isChestOpened = true;
+
+            [1, 2, 3].forEach(num => {
+                const container = document.getElementById(`container-${num}`);
+                if (num !== id) {
+                    gsap.to(container, { opacity: 0.2, scale: 0.8, filter: "grayscale(100%) blur(2px)", pointerEvents: "none", duration: 1 });
+                }
+            });
+
+            const chosenIcon = document.getElementById(`img-chest-${id}`);
+            const chosenMsg = document.getElementById(`msg-${id}`);
+            
+            gsap.to(chosenIcon, { y: -20, scale: 1.1, duration: 0.8, ease: "back.out" });
+            chosenMsg.classList.remove('hidden');
+            gsap.from(chosenMsg, { opacity: 0, y: 20, duration: 1 });
+
+            gsap.to("#btn-goto-drogon", { autoAlpha: 1, pointerEvents: "auto", y: -10, duration: 1, delay: 1 });
+            document.getElementById('chest-instruction').innerText = "Le destin a parlé.";
+        }
+
+        // 4. NAVIGATION ET EFFETS SPÉCIAUX
+        document.getElementById('btn-goto-drogon').addEventListener('click', () => {
+            gsap.to(window, { duration: 1.5, scrollTo: "#section-drogon", ease: "power4.inOut" });
+            
+            // Animation Machine à écrire
+            gsap.to("#drogon-text", {
+                duration: 6,
+                text: {
+                    value: "Ma Khaleesi,<br><br>L'Hiver est rude, mais ton ami le plus fidèle veille. Voici ta mission pour 2026 :<br><br><strong class='text-orange-500'>Conquiers le monticule de la vassale.</strong><br><br>Ton fidèle Drogon.",
+                    delimiter: "" 
+                },
+                ease: "none",
+                delay: 1
+            });
+        });
+
+        document.getElementById('btn-goto-final').addEventListener('click', () => {
+            gsap.to(window, { duration: 1.5, scrollTo: "#section-sign", ease: "power4.inOut" });
+            
+            // SÉQUENCE FINALE : Couronne + Tremblement
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#section-sign",
+                    start: "top 60%", // Déclenche quand la section arrive au milieu
+                    toggleActions: "play none none none"
+                }
+            });
+            
+            tl.to("#final-crown", {
+                opacity: 1,
+                scale: 1,
+                duration: 1.5,
+                ease: "back.out(1.7)"
+            })
+            .from("#final-title", {
+                opacity: 0,
+                y: 50,
+                duration: 1,
+                letterSpacing: "0.1em"
+            }, "-=0.5")
+            .to("#final-quote", {
+                opacity: 1,
+                y: 0,
+                duration: 1
+            }, "-=0.5")
+            .to("#final-line", {
+                width: "12rem", // w-48
+                duration: 0.8,
+                ease: "power2.inOut"
+            })
+            .to("#final-signature", {
+                opacity: 1,
+                duration: 1.5,
+                letterSpacing: "0.6em", // Effet d'expansion
+                ease: "power3.out"
+            });
+        });
+
+        // FONCTION TREMBLEMENT D'ÉCRAN (Earthquake)
+        function earthquakeEffect() {
+            const main = document.body;
+            gsap.to(main, {
+                x: "random(-15, 15)",
+                y: "random(-15, 15)",
+                duration: 0.05,
+                repeat: 20,
+                yoyo: true,
+                onComplete: () => gsap.set(main, { x: 0, y: 0 }) // Remise à zéro
+            });
+        }
+    </script>
+</body>
+</html>
